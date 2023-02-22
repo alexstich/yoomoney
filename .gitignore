@@ -52,6 +52,7 @@ provisions/
 # Appcode
 .idea/
 
+
 #.DS_Store
 YooKassaPayments/.DS_Store
 YooKassaPaymentsDemoApp/.DS_Store
