@@ -5,7 +5,7 @@ struct PaymentMethodHandlerServiceAssembly {
         let supportedTypes = tokenizationSettings.paymentMethodTypes.rawValue
         return PaymentMethodHandlerServiceImpl(
             tokenizationSettings: tokenizationSettings,
-            supportedTypes: supportedTypes,
+            supportedTypes: supportedTypes
         )
     }
 }

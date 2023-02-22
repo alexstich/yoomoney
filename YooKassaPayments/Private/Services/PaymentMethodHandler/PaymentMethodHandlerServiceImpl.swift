@@ -11,7 +11,7 @@ final class PaymentMethodHandlerServiceImpl {
 
     init(
         tokenizationSettings: TokenizationSettings,
-        supportedTypes: Set<PaymentMethodType>,
+        supportedTypes: Set<PaymentMethodType>
     ) {
         self.tokenizationSettings = tokenizationSettings
         self.supportedTypes = supportedTypes

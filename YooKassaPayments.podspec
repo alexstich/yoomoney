@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   ]
 
   s.ios.framework  = 'UIKit'
-  s.ios.framework  = 'PassKit'
+#  s.ios.framework  = 'PassKit'
   s.ios.library = 'z'
 
   s.ios.dependency 'YooMoneyCoreApi', '~> 2.1.0'

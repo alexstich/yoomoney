@@ -1,5 +1,4 @@
 import MoneyAuth
-import PassKit
 import YooKassaPaymentsApi
 
 final class PaymentMethodsPresenter: NSObject {
