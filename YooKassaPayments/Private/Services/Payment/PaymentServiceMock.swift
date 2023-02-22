@@ -182,18 +182,6 @@ extension PaymentServiceMock: PaymentService {
         makeTokensPromise(completion: completion)
     }
 
-    func tokenizeApplePay(
-        clientApplicationKey: String,
-        paymentData: String,
-        savePaymentMethod: Bool,
-        amount: MonetaryAmount?,
-        tmxSessionId: String,
-        customerId: String?,
-        completion: @escaping (Result<Tokens, Error>) -> Void
-    ) {
-        makeTokensPromise(completion: completion)
-    }
-
     func tokenizeRepeatBankCard(
         clientApplicationKey: String,
         amount: MonetaryAmount,

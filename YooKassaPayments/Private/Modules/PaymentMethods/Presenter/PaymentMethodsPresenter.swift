@@ -1017,22 +1017,6 @@ extension PaymentMethodsPresenter: LinkedCardModuleOutput {
     }
 }
 
-// MARK: - ApplePayContractModuleOutput
-
-extension PaymentMethodsPresenter: ApplePayContractModuleOutput {
-    func tokenizationModule(
-        _ module: ApplePayContractModuleInput,
-        didTokenize token: Tokens,
-        paymentMethodType: PaymentMethodType
-    ) {
-        didTokenize(
-            tokens: token,
-            paymentMethodType: paymentMethodType,
-            scheme: .applePay
-        )
-    }
-}
-
 // MARK: - SberbankModuleOutput
 
 extension PaymentMethodsPresenter: SberbankModuleOutput {

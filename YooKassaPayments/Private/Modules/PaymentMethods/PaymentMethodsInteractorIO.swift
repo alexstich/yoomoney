@@ -11,9 +11,6 @@ protocol PaymentMethodsInteractorInput {
     func track(event: AnalyticsEvent)
     func analyticsAuthType() -> AnalyticsEvent.AuthType
 
-    // MARK: - Apple Pay Tokenize
-
-    func tokenizeApplePay(paymentData: String, savePaymentMethod: Bool, amount: MonetaryAmount)
     func tokenizeInstrument(
         instrument: PaymentInstrumentBankCard,
         savePaymentMethod: Bool,
