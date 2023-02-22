@@ -21,20 +21,6 @@ protocol PaymentMethodsRouterInput: AnyObject {
 
     func closeAuthorizationModule()
 
-    func presentApplePay(
-        inputData: ApplePayModuleInputData,
-        moduleOutput: ApplePayModuleOutput
-    )
-
-    func closeApplePay(
-        completion: (() -> Void)?
-    )
-
-    func presentApplePayContractModule(
-        inputData: ApplePayContractModuleInputData,
-        moduleOutput: ApplePayContractModuleOutput
-    )
-
     func shouldDismissAuthorizationModule() -> Bool
 
     func openSberbankModule(

@@ -4,12 +4,6 @@ import YooKassaPaymentsApi
 
 final class PaymentMethodsPresenter: NSObject {
 
-    private enum ApplePayState {
-        case idle
-        case success
-        case cancel
-    }
-
     private enum App2AppState {
         case idle
         case yoomoney
@@ -115,12 +109,6 @@ final class PaymentMethodsPresenter: NSObject {
     private var shouldReloadOnViewDidAppear = false
     private var moneyCenterAuthToken: String?
     private var app2AppState: App2AppState = .idle
-
-    // MARK: - Apple Pay properties
-
-    private var applePayCompletion: ((PKPaymentAuthorizationStatus) -> Void)?
-    private var applePayState: ApplePayState = .idle
-    private var applePayPaymentOption: PaymentOption?
 
     private var unbindCompletion: ((Bool) -> Void)?
 }
@@ -278,9 +266,6 @@ extension PaymentMethodsPresenter: PaymentMethodsViewOutput {
                 openSberbankModule(paymentOption: paymentOption, isSafeDeal: isSafeDeal, needReplace: needReplace)
             }
 
-        case let paymentOption where paymentOption.paymentMethodType == .applePay:
-            openApplePay(paymentOption: paymentOption, isSafeDeal: isSafeDeal, needReplace: needReplace)
-
         case let paymentOption where paymentOption.paymentMethodType == .bankCard:
             openBankCardModule(paymentOption: paymentOption, isSafeDeal: isSafeDeal, needReplace: needReplace)
 
@@ -410,67 +395,6 @@ extension PaymentMethodsPresenter: PaymentMethodsViewOutput {
             inputData: inputData,
             moduleOutput: self
         )
-    }
-
-    private func openApplePay(
-        paymentOption: PaymentOption,
-        isSafeDeal: Bool,
-        needReplace: Bool
-    ) {
-        let feeCondition = paymentOption.fee != nil
-        let inputSavePaymentMethodCondition = savePaymentMethod == .userSelects
-            || savePaymentMethod == .on
-        let savePaymentMethodCondition = paymentOption.savePaymentMethod == .allowed
-            && inputSavePaymentMethodCondition
-
-        if feeCondition || savePaymentMethodCondition || isSafeDeal {
-            let initialSavePaymentMethod = makeInitialSavePaymentMethod(savePaymentMethod)
-            let savePaymentMethodViewModel = SavePaymentMethodViewModelFactory.makeSavePaymentMethodViewModel(
-                paymentOption,
-                savePaymentMethod,
-                initialState: initialSavePaymentMethod
-            )
-            let priceViewModel = priceViewModelFactory.makeAmountPriceViewModel(paymentOption)
-            let feeViewModel = priceViewModelFactory.makeFeePriceViewModel(paymentOption)
-            let inputData = ApplePayContractModuleInputData(
-                clientApplicationKey: clientApplicationKey,
-                testModeSettings: testModeSettings,
-                isLoggingEnabled: isLoggingEnabled,
-                tokenizationSettings: tokenizationSettings,
-                shopName: shopName,
-                purchaseDescription: purchaseDescription,
-                price: priceViewModel,
-                fee: feeViewModel,
-                paymentOption: paymentOption,
-                termsOfService: termsOfService,
-                merchantIdentifier: applePayMerchantIdentifier,
-                savePaymentMethodViewModel: savePaymentMethodViewModel,
-                initialSavePaymentMethod: initialSavePaymentMethod,
-                isBackBarButtonHidden: needReplace,
-                customerId: customerId,
-                isSafeDeal: isSafeDeal,
-                paymentOptionTitle: config.paymentMethods.first { $0.kind == .applePay }?.title
-            )
-            router.presentApplePayContractModule(
-                inputData: inputData,
-                moduleOutput: self
-            )
-        } else {
-            applePayPaymentOption = paymentOption
-
-            let moduleInputData = ApplePayModuleInputData(
-                merchantIdentifier: applePayMerchantIdentifier,
-                amount: MonetaryAmountFactory.makeAmount(paymentOption.charge),
-                shopName: shopName,
-                purchaseDescription: purchaseDescription,
-                supportedNetworks: ApplePayConstants.paymentNetworks,
-                fee: paymentOption.fee?.plain
-            )
-            router.presentApplePay(
-                inputData: moduleInputData,
-                moduleOutput: self
-            )
-        }
     }
 
     private func openSberbankModule(
@@ -853,60 +777,6 @@ extension PaymentMethodsPresenter: PaymentMethodsInteractorOutput {
         }
     }
 
-    func didTokenizeApplePay(_ token: Tokens) {
-        guard applePayState == .success else {
-            return
-        }
-
-        applePayCompletion?(.success)
-
-        interactor.track(event:
-            .actionTokenize(
-                scheme: .applePay,
-                currentAuthType: interactor.analyticsAuthType())
-        )
-
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + Constants.dismissApplePayTimeout
-        ) { [weak self] in
-            guard let self = self else { return }
-            self.router.closeApplePay {
-                self.didTokenize(
-                    tokens: token,
-                    paymentMethodType: .applePay,
-                    scheme: .applePay
-                )
-            }
-        }
-    }
-
-    func failTokenizeApplePay(_ error: Error) {
-        guard applePayState == .success else { return }
-
-        let savePaymentMethod: Bool? = shop?.options
-            .first { $0.paymentMethodType == .applePay }
-            .map { $0.savePaymentMethod == .allowed }
-        trackScreenErrorAnalytics(scheme: .applePay, savePaymentMethod: savePaymentMethod)
-        applePayCompletion?(.failure)
-
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + Constants.dismissApplePayTimeout
-        ) { [weak self] in
-            guard let self = self else { return }
-            self.router.closeApplePay { [weak self] in
-                guard let self = self else { return }
-
-                let message = CommonLocalized.ApplePay.failTokenizeData
-                if self.shop?.options.count == 1 {
-                    self.view?.hideActivity()
-                    self.view?.showPlaceholder(message: message)
-                } else {
-                    self.view?.presentError(with: message)
-                }
-            }
-        }
-    }
-
     private func presentError(_ error: Error, savePaymentMethod: Bool?) {
         let message: String
 
@@ -1144,87 +1014,6 @@ extension PaymentMethodsPresenter: LinkedCardModuleOutput {
             paymentMethodType: paymentMethodType,
             scheme: .linkedCard
         )
-    }
-}
-
-// MARK: - ApplePayModuleOutput
-
-extension PaymentMethodsPresenter: ApplePayModuleOutput {
-    func didPresentApplePayModule() {
-        applePayState = .idle
-        let savePaymentMethod = shop?.options
-            .first { $0.paymentMethodType == .applePay }
-            .map { $0.savePaymentMethod == .allowed }
-        trackScreenPaymentAnalytics(scheme: .applePay, savePaymentMethod: savePaymentMethod)
-    }
-
-    func didFailPresentApplePayModule() {
-        applePayState = .idle
-        let savePaymentMethod = shop?.options
-            .first { $0.paymentMethodType == .applePay }
-            .map { $0.savePaymentMethod == .allowed }
-        trackScreenErrorAnalytics(scheme: .applePay, savePaymentMethod: savePaymentMethod)
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self,
-                  let view = self.view else { return }
-
-            let message = CommonLocalized.ApplePay.applePayUnavailableTitle
-            if self.shop?.options.count == 1 {
-                view.hideActivity()
-                view.showPlaceholder(message: message)
-            } else {
-                view.presentError(with: message)
-            }
-        }
-    }
-
-    @available(iOS 11.0, *)
-    func paymentAuthorizationViewController(
-        _ controller: PKPaymentAuthorizationViewController,
-        didAuthorizePayment payment: PKPayment,
-        handler completion: @escaping (PKPaymentAuthorizationResult) -> Void
-    ) {
-        paymentAuthorizationViewController(
-            controller,
-            didAuthorizePayment: payment
-        ) { status in
-            completion(PKPaymentAuthorizationResult(status: status, errors: nil))
-        }
-    }
-
-    func paymentAuthorizationViewController(
-        _ controller: PKPaymentAuthorizationViewController,
-        didAuthorizePayment payment: PKPayment,
-        completion: @escaping (PKPaymentAuthorizationStatus) -> Void
-    ) {
-        guard applePayState != .cancel,
-              let paymentOption = applePayPaymentOption else { return }
-
-        applePayState = .success
-        applePayCompletion = completion
-
-        DispatchQueue.global().async { [weak self] in
-            guard let self = self else { return }
-
-            let initialSavePaymentMethod = makeInitialSavePaymentMethod(self.savePaymentMethod)
-            self.interactor.tokenizeApplePay(
-                paymentData: payment.token.paymentData.base64EncodedString(),
-                savePaymentMethod: initialSavePaymentMethod,
-                amount: paymentOption.charge.plain
-            )
-        }
-    }
-
-    func paymentAuthorizationViewControllerDidFinish(
-        _ controller: PKPaymentAuthorizationViewController
-    ) {
-        router.closeApplePay(completion: nil)
-        applePayState = .cancel
-
-        if shop?.options.count == 1 {
-            didFinish(module: self, error: nil)
-        }
     }
 }
 

@@ -170,63 +170,7 @@ extension PaymentMethodsInteractor: PaymentMethodsInteractorInput {
     }
 }
 
-// MARK: - Apple Pay Tokenize
-
 extension PaymentMethodsInteractor {
-    func tokenizeApplePay(
-        paymentData: String,
-        savePaymentMethod: Bool,
-        amount: MonetaryAmount
-    ) {
-        threatMetrixService.profileApp { [weak self] result in
-            guard let self = self,
-                  let output = self.output else { return }
-
-            switch result {
-            case let .success(tmxSessionId):
-                self.tokenizeApplePayWithTMXSessionId(
-                    paymentData: paymentData,
-                    savePaymentMethod: savePaymentMethod,
-                    amount: amount,
-                    tmxSessionId: tmxSessionId.value
-                )
-
-            case let .failure(error):
-                let mappedError = mapError(error)
-                output.failTokenizeApplePay(mappedError)
-            }
-        }
-    }
-
-    private func tokenizeApplePayWithTMXSessionId(
-        paymentData: String,
-        savePaymentMethod: Bool,
-        amount: MonetaryAmount,
-        tmxSessionId: String
-    ) {
-        guard let output = output else { return }
-
-        let completion: (Result<Tokens, Error>) -> Void = { result in
-            switch result {
-            case let .success(data):
-                output.didTokenizeApplePay(data)
-            case let .failure(error):
-                let mappedError = mapError(error)
-                output.failTokenizeApplePay(mappedError)
-            }
-        }
-
-        paymentService.tokenizeApplePay(
-            clientApplicationKey: clientApplicationKey,
-            paymentData: paymentData,
-            savePaymentMethod: savePaymentMethod,
-            amount: amount,
-            tmxSessionId: tmxSessionId,
-            customerId: customerId,
-            completion: completion
-        )
-    }
-
     func tokenizeInstrument(
         instrument: PaymentInstrumentBankCard,
         savePaymentMethod: Bool,

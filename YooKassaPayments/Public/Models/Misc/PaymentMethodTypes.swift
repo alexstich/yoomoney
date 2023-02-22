@@ -12,12 +12,9 @@ public struct PaymentMethodTypes: OptionSet {
     /// Sberbank Online
     public static let sberbank = PaymentMethodTypes(rawValue: [.sberbank])
 
-    /// Apple Pay
-    public static let applePay = PaymentMethodTypes(rawValue: [.applePay])
-
     /// All the available methods.
     public static let all: PaymentMethodTypes = [
-        .bankCard, .yooMoney, .applePay, .sberbank,
+        .bankCard, .yooMoney, .sberbank,
     ]
 
     // MARK: - SetAlgebra

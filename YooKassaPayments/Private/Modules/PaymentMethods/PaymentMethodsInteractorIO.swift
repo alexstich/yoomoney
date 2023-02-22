@@ -36,9 +36,6 @@ protocol PaymentMethodsInteractorOutput: AnyObject {
     func didDecryptCryptogram(_ token: String)
     func didFailDecryptCryptogram(_ error: Error)
 
-    func didTokenizeApplePay(_ token: Tokens)
-    func failTokenizeApplePay(_ error: Error)
-
     func didUnbindCard(id: String)
     func didFailUnbindCard(id: String, error: Error)
 

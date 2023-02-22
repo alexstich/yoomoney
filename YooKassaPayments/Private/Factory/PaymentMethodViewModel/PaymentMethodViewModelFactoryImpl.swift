@@ -228,7 +228,6 @@ private extension PaymentMethodViewModelFactoryImpl {
         switch paymentMethodType {
         case .bankCard: kind = .bankCard
         case .yooMoney: kind = .yoomoney
-        case .applePay: kind = .applePay
         case .sberbank: kind = .sberbank
         default:
             assertionFailure("Unsupported PaymentMethodType")
@@ -262,8 +261,6 @@ private extension PaymentMethodViewModelFactoryImpl {
             image = configMediator.asset(for: .bankCard)
         case .yooMoney:
             image = configMediator.asset(for: .yoomoney)
-        case .applePay:
-            image = configMediator.asset(for: .applePay)
         case .sberbank:
             image = configMediator.asset(for: .sberbank)
         default:

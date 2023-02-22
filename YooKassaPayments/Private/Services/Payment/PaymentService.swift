@@ -85,16 +85,6 @@ protocol PaymentService {
         completion: @escaping (Result<Tokens, Error>) -> Void
     )
 
-    func tokenizeApplePay(
-        clientApplicationKey: String,
-        paymentData: String,
-        savePaymentMethod: Bool,
-        amount: MonetaryAmount?,
-        tmxSessionId: String,
-        customerId: String?,
-        completion: @escaping (Result<Tokens, Error>) -> Void
-    )
-
     func tokenizeRepeatBankCard(
         clientApplicationKey: String,
         amount: MonetaryAmount,

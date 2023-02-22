@@ -14,8 +14,6 @@ public enum PaymentMethodType: String {
     case webmoney
     /// Sberbank.
     case sberbank
-    /// ApplePay.
-    case applePay = "apple_pay"
     /// YooMoney
     case yooMoney = "yoo_money"
 }
@@ -37,8 +35,6 @@ extension PaymentMethodType {
             self = .webmoney
         case .sberbank:
             self = .sberbank
-        case .applePay:
-            self = .applePay
         case .yooMoney:
             self = .yooMoney
         @unknown default:
@@ -66,8 +62,6 @@ extension YooKassaPaymentsApi.PaymentMethodType {
             self = .webmoney
         case .sberbank:
             self = .sberbank
-        case .applePay:
-            self = .applePay
         case .yooMoney:
             self = .yooMoney
         }

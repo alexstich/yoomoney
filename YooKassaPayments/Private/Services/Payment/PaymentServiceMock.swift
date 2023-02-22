@@ -326,15 +326,6 @@ private func makeDefaultPaymentOptions(
             savePaymentMethod: .forbidden,
             savePaymentInstrument: true
         ),
-        PaymentOption(
-            paymentMethodType: .applePay,
-            confirmationTypes: [],
-            charge: charge,
-            identificationRequirement: nil,
-            fee: fee?.paymentsModel,
-            savePaymentMethod: .forbidden,
-            savePaymentInstrument: true
-        ),
         makeYooMoney(
             authorized: authorized,
             charge: charge.plain,
